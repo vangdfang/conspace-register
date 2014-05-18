@@ -22,3 +22,10 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Create your views here.
+
+from django.shortcuts import render
+from django.views.generic import View
+
+class Register(View):
+  def get(request):
+    return render(request, 'register.html')
