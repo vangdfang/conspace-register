@@ -27,5 +27,5 @@ from django.shortcuts import render
 from django.views.generic import View
 
 class Register(View):
-  def get(request):
+  def get(self, request):
     return render(request, 'register.html')
