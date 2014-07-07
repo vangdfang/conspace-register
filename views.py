@@ -28,4 +28,4 @@ from django.views.generic import View
 
 class Register(View):
   def get(self, request):
-    return render(request, 'register.html')
+    return render(request, 'register/register.html')
