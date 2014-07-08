@@ -24,6 +24,7 @@
 from django import forms
 from django.forms.extras.widgets import SelectDateWidget
 from register.models import Registration
+from register.models import PaymentMethod
 from datetime import date
 
 BIRTH_YEAR_CHOICES = list(range(date.today().year, 1900, -1))
@@ -31,5 +32,20 @@ BIRTH_YEAR_CHOICES = list(range(date.today().year, 1900, -1))
 class RegistrationForm(forms.ModelForm):
     class Meta:
         model = Registration
-        fields = ['name', 'badge_name', 'email', 'address', 'city', 'state', 'postal_code', 'country', 'registration_level']
-    birthday = forms.DateField(widget=SelectDateWidget(years=BIRTH_YEAR_CHOICES))
+        fields = [
+                  'name',
+                  'badge_name',
+                  'email',
+                  'address',
+                  'city',
+                  'state',
+                  'postal_code',
+                  'country',
+                  'registration_level',
+                  'birthday',
+                ]
+        widgets = {
+                   'birthday': SelectDateWidget(years=BIRTH_YEAR_CHOICES)
+                }
+
+    payment_method = forms.ModelChoiceField(queryset=PaymentMethod.objects.filter(active=True))

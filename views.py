@@ -27,16 +27,63 @@ from django.shortcuts import render
 from django.views.generic import View
 
 from register.forms import RegistrationForm
+from register.models import Convention, RegistrationLevel, Payment, PaymentMethod
+
+import stripe
 
 class Register(View):
-  def get(self, request):
-    form = RegistrationForm()
-    return render(request, 'register/register.html', {'form': form})
-
-  def post(self, request):
-    form = RegistrationForm(request.POST)
-    if form.is_valid():
-        form.save()
-        return render(request, 'register/success.html')
-    else:
+    def get(self, request):
+        form = RegistrationForm()
         return render(request, 'register/register.html', {'form': form})
+
+    def post(self, request):
+        if 'confirm' in request.POST.keys():
+            if 'stripeToken' in request.POST.keys():
+                # Process Stripe payment
+                try:
+                    form = request.session['form']
+                    stripe.api_key = Convention.objects.get().stripe_secret_key
+                    reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
+                    charge = stripe.Charge.create(
+                                                  amount=reglevel.price * 100,
+                                                  currency="USD",
+                                                  card=request.POST['stripeToken'],
+                                                  description=reglevel.title)
+                    reg = form.save(commit=False)
+                    reg.ip = request.META['REMOTE_ADDR']
+                    try:
+                        reg.save()
+                        method = PaymentMethod.objects.get(id=form['payment_method'].value)
+                        payment = Payment(registration_id=reg,
+                                          payment_method=method,
+                                          payment_amount=reglevel.price)
+                        payment.save()
+                    except Exception, e:
+                        charge.refunds.create()
+                        raise e
+                    request.session.pop('form')
+                except stripe.error.CardError, e:
+                    # Pass a "Payment Declined" error to the user
+                    form.errors['__all__'] = form.error_class([e])
+                    request.session.pop('form')
+                    return render(request, 'register/register.html', {'form': form})
+                return render(request, 'register/success.html')
+            else:
+                # Confirm normally; don't create payment record
+                reg = request.session['form'].save(commit=False)
+                reg.ip = request.META['REMOTE_ADDR']
+                reg.save()
+                request.session.pop('form')
+                return render(request, 'register/success.html')
+        else:
+            form = RegistrationForm(request.POST)
+            if form.is_valid():
+                request.session['form'] = form
+                convention = Convention.objects.get()
+                reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
+                return render(request, 'register/confirm.html', {'convention': convention,
+                                                                 'form': form,
+                                                                 'registration_level': reglevel.title,
+                                                                 'registration_amount': reglevel.price * 100})
+            else:
+                return render(request, 'register/register.html', {'form': form})

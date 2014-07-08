@@ -65,6 +65,7 @@ class Convention(models.Model):
     description = models.TextField()
     agreement = models.TextField()
     stripe_publishable_key = models.CharField(max_length=255)
+    stripe_secret_key = models.CharField(max_length=255)
 
     def __unicode__(self):
         return self.name
