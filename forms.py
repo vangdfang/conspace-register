@@ -21,22 +21,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Create your views here.
+from django import forms
+from django.forms.extras.widgets import SelectDateWidget
+from register.models import Registration
+from datetime import date
 
-from django.shortcuts import render
-from django.views.generic import View
+BIRTH_YEAR_CHOICES = list(range(date.today().year, 1900, -1))
 
-from register.forms import RegistrationForm
-
-class Register(View):
-  def get(self, request):
-    form = RegistrationForm()
-    return render(request, 'register/register.html', {'form': form})
-
-  def post(self, request):
-    form = RegistrationForm(request.POST)
-    if form.is_valid():
-        form.save()
-        return render(request, 'register/success.html')
-    else:
-        return render(request, 'register/register.html', {'form': form})
+class RegistrationForm(forms.ModelForm):
+    class Meta:
+        model = Registration
+        fields = ['name', 'badge_name', 'email', 'address', 'city', 'state', 'postal_code', 'country', 'registration_level']
+    birthday = forms.DateField(widget=SelectDateWidget(years=BIRTH_YEAR_CHOICES))

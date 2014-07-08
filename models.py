@@ -37,6 +37,9 @@ class Registration(models.Model):
     registration_level = models.ForeignKey('RegistrationLevel')
     ip = models.GenericIPAddressField()
 
+    def __unicode__(self):
+        return self.name + ' [' + self.badge_name + ']'
+
 class Payment(models.Model):
     registration_id = models.ForeignKey('Registration')
     payment_method = models.ForeignKey('PaymentMethod')
@@ -54,12 +57,21 @@ class RegistrationLevel(models.Model):
     color = models.CharField(max_length=7)
     deadline = models.DateTimeField()
 
+    def __unicode__(self):
+        return self.title
+
 class Convention(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     agreement = models.TextField()
     stripe_publishable_key = models.CharField(max_length=255)
 
+    def __unicode__(self):
+        return self.name
+
 class PaymentMethod(models.Model):
     name = models.CharField(max_length=255)
     active = models.BooleanField()
+
+    def __unicode__(self):
+        return self.name
