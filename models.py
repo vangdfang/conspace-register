@@ -73,6 +73,7 @@ class Convention(models.Model):
 class PaymentMethod(models.Model):
     name = models.CharField(max_length=255)
     active = models.BooleanField()
+    is_credit = models.BooleanField()
 
     def __unicode__(self):
         return self.name

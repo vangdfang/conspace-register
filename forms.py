@@ -22,12 +22,30 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms.extras.widgets import SelectDateWidget
 from register.models import Registration
 from register.models import PaymentMethod
 from datetime import date
 
 BIRTH_YEAR_CHOICES = list(range(date.today().year, 1900, -1))
+
+def validate_birthday(value):
+    years = date.today().year - value.year
+
+    try:
+        birthdate = date(year=date.today().year, month=value.month, day=value.day)
+    except ValueError, e:
+        if value.month == 2 and value.day == 29:
+            birthdate = date(year=date.today().year, month=2, day=28)
+        else:
+            raise e
+
+    if date.today() < birthdate:
+        years -= 1
+
+    if years < 18:
+        raise ValidationError("You must be 18 or older to register")
 
 class RegistrationForm(forms.ModelForm):
     class Meta:
@@ -49,3 +67,8 @@ class RegistrationForm(forms.ModelForm):
                 }
 
     payment_method = forms.ModelChoiceField(queryset=PaymentMethod.objects.filter(active=True))
+
+    def clean_birthday(self):
+        data = self.cleaned_data['birthday']
+        validate_birthday(data)
+        return data

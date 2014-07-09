@@ -81,9 +81,11 @@ class Register(View):
                 request.session['form'] = form
                 convention = Convention.objects.get()
                 reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
+                method = PaymentMethod.objects.get(id=form['payment_method'].value)
                 return render(request, 'register/confirm.html', {'convention': convention,
                                                                  'form': form,
                                                                  'registration_level': reglevel.title,
-                                                                 'registration_amount': reglevel.price * 100})
+                                                                 'registration_amount': reglevel.price * 100,
+                                                                 'is_credit': method.is_credit})
             else:
                 return render(request, 'register/register.html', {'form': form})
