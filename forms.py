@@ -63,12 +63,17 @@ class RegistrationForm(forms.ModelForm):
                   'birthday',
                 ]
         widgets = {
-                   'birthday': SelectDateWidget(years=BIRTH_YEAR_CHOICES)
+                   'birthday': SelectDateWidget(years=BIRTH_YEAR_CHOICES),
+                   'registration_level': forms.RadioSelect(),
                 }
 
-    payment_method = forms.ModelChoiceField(queryset=PaymentMethod.objects.filter(active=True))
+    payment_method = forms.ModelChoiceField(widget=forms.RadioSelect, empty_label=None, queryset=PaymentMethod.objects.filter(active=True))
 
     def clean_birthday(self):
         data = self.cleaned_data['birthday']
         validate_birthday(data)
         return data
+
+    def __init__(self, *args, **kwargs):
+        super(RegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['registration_level'].empty_label = None

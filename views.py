@@ -86,6 +86,8 @@ class Register(View):
                                                                  'form': form,
                                                                  'registration_level': reglevel.title,
                                                                  'registration_amount': reglevel.price * 100,
-                                                                 'is_credit': method.is_credit})
+                                                                 'is_credit': method.is_credit,
+                                                                 'method': method.name,
+                                                                 'birthday': form.cleaned_data['birthday'].strftime("%B %d, %Y")})
             else:
                 return render(request, 'register/register.html', {'form': form})
