@@ -35,7 +35,7 @@ def validate_birthday(value):
 
     try:
         birthdate = date(year=date.today().year, month=value.month, day=value.day)
-    except ValueError, e:
+    except ValueError as e:
         if value.month == 2 and value.day == 29:
             birthdate = date(year=date.today().year, month=2, day=28)
         else:

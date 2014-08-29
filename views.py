@@ -58,11 +58,11 @@ class Register(View):
                                           payment_method=method,
                                           payment_amount=reglevel.price)
                         payment.save()
-                    except Exception, e:
+                    except Exception as e:
                         charge.refunds.create()
                         raise e
                     request.session.pop('form')
-                except stripe.error.CardError, e:
+                except stripe.error.CardError as e:
                     # Pass a "Payment Declined" error to the user
                     form.errors['__all__'] = form.error_class([e])
                     request.session.pop('form')
