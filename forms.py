@@ -27,6 +27,7 @@ from django.forms.extras.widgets import SelectDateWidget
 from register.models import Registration
 from register.models import PaymentMethod
 from datetime import date
+import re
 
 BIRTH_YEAR_CHOICES = list(range(date.today().year, 1900, -1))
 
@@ -72,6 +73,15 @@ class RegistrationForm(forms.ModelForm):
     def clean_birthday(self):
         data = self.cleaned_data['birthday']
         validate_birthday(data)
+        return data
+
+    def clean_badge_name(self):
+        data = self.cleaned_data['badge_name']
+        # Ugh.  This is some RE magic.  space is \x20, and we want to allow all characters thru \x7e (~)
+        # This will include alphanumerics and simple punctuation.
+        if re.match('[^\x20-\x7e]', data):
+            raise ValidationError("Badge name may only contain letters, numbers and punctuation.")
+
         return data
 
     def __init__(self, *args, **kwargs):
