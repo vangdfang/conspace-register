@@ -56,6 +56,7 @@ class RegistrationLevel(models.Model):
     background = models.CharField(max_length=255)
     color = models.CharField(max_length=7)
     deadline = models.DateTimeField()
+    active = models.BooleanField()
 
     def __unicode__(self):
         return self.title

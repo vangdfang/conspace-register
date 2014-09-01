@@ -26,7 +26,8 @@ from django.core.exceptions import ValidationError
 from django.forms.extras.widgets import SelectDateWidget
 from register.models import Registration
 from register.models import PaymentMethod
-from datetime import date
+from register.models import RegistrationLevel
+from datetime import date, datetime
 import re
 
 BIRTH_YEAR_CHOICES = list(range(date.today().year, 1900, -1))
@@ -84,6 +85,21 @@ class RegistrationForm(forms.ModelForm):
 
         return data
 
+    def clean_registration_level(self):
+        data = self.cleaned_data['registration_level']
+        if data.deadline.replace(tzinfo=None) <= datetime.now() or data.active == False:
+            raise ValidationError("That registration level is no longer available.")
+
+        return data
+
+    def clean_payment_method(self):
+        data = self.cleaned_data['payment_method']
+        if data.active == False:
+            raise ValidationError("That payment method is no longer available.")
+
+        return data
+
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
         self.fields['registration_level'].empty_label = None
+        self.fields['registration_level'].queryset=RegistrationLevel.objects.filter(active=True, deadline__gt=datetime.now())
