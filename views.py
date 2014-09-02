@@ -25,9 +25,10 @@
 
 from django.shortcuts import render
 from django.views.generic import View
+from django.core.exceptions import ObjectDoesNotExist
 
 from register.forms import RegistrationForm
-from register.models import Convention, RegistrationLevel, Payment, PaymentMethod
+from register.models import Convention, RegistrationLevel, DealerRegistrationLevel, Payment, PaymentMethod, ShirtSize, CouponCode, CouponUse
 
 import stripe
 
@@ -38,14 +39,28 @@ class Register(View):
 
     def post(self, request):
         if 'confirm' in request.POST.keys():
+            form = request.session['form']
+            dealer_price = 0
+            if form.cleaned_data['dealer_registration_level']:
+                dealer_reglevel = DealerRegistrationLevel.objects.get(id=form['dealer_registration_level'].value)
+                dealer_price = dealer_reglevel.price
+            discount_amount = 0
+            discount_percent = 0
+            code = None
+            if form.cleaned_data['coupon_code']:
+                code = CouponCode.objects.get(code=form.cleaned_data['coupon_code'])
+                if code.percent:
+                    discount_percent = code.discount
+                else:
+                    discount_amount = code.discount
+            reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
+            amount = max(((reglevel.price + dealer_price - discount_amount) * (1 - discount_percent)), 0)
             if 'stripeToken' in request.POST.keys():
                 # Process Stripe payment
                 try:
-                    form = request.session['form']
                     stripe.api_key = Convention.objects.get().stripe_secret_key
-                    reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
                     charge = stripe.Charge.create(
-                                                  amount=reglevel.price * 100,
+                                                  amount=amount * 100,
                                                   currency="USD",
                                                   card=request.POST['stripeToken'],
                                                   description=reglevel.title)
@@ -54,10 +69,14 @@ class Register(View):
                     try:
                         reg.save()
                         method = PaymentMethod.objects.get(id=form['payment_method'].value)
-                        payment = Payment(registration_id=reg,
+                        payment = Payment(registration=reg,
                                           payment_method=method,
-                                          payment_amount=reglevel.price)
+                                          payment_amount=amount)
                         payment.save()
+                        if code:
+                            couponuse = CouponUse(registration=reg,
+                                                  coupon=code)
+                            couponuse.save()
                     except Exception as e:
                         charge.refunds.create()
                         raise e
@@ -72,7 +91,20 @@ class Register(View):
                 # Confirm normally; don't create payment record
                 reg = request.session['form'].save(commit=False)
                 reg.ip = request.META['REMOTE_ADDR']
-                reg.save()
+                try:
+                    reg.save()
+                    if amount == 0:
+                        method = PaymentMethod.objects.get(id=form['payment_method'].value)
+                        payment = Payment(registration=reg,
+                                          payment_method=method,
+                                          payment_amount=0)
+                        payment.save()
+                        if code:
+                            couponuse = CouponUse(registration=reg,
+                                                  coupon=code)
+                            couponuse.save()
+                except Exception as e:
+                    raise e
                 request.session.pop('form')
                 return render(request, 'register/success.html')
         else:
@@ -81,13 +113,36 @@ class Register(View):
                 request.session['form'] = form
                 convention = Convention.objects.get()
                 reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
+                dealer_price = 0
+                dealer_tables = None
+                if form.cleaned_data['dealer_registration_level']:
+                    dealer_reglevel = DealerRegistrationLevel.objects.get(id=form['dealer_registration_level'].value)
+                    dealer_price = dealer_reglevel.price
+                    dealer_tables = dealer_reglevel.number_tables
+                discount_amount = 0
+                discount_percent = 0
+                if form.cleaned_data['coupon_code']:
+                    code = CouponCode.objects.get(code=form.cleaned_data['coupon_code'])
+                    if code.percent:
+                        discount_percent = code.discount
+                    else:
+                        discount_amount = code.discount
+
                 method = PaymentMethod.objects.get(id=form['payment_method'].value)
+                shirt_size = ShirtSize.objects.get(id=form['shirt_size'].value)
+                amount = max(((reglevel.price + dealer_price - discount_amount) * (1 - discount_percent)), 0)
+                if amount == 0:
+                    method = PaymentMethod.objects.filter(active=True, is_credit=False)[0]
+
                 return render(request, 'register/confirm.html', {'convention': convention,
                                                                  'form': form,
                                                                  'registration_level': reglevel.title,
-                                                                 'registration_amount': reglevel.price * 100,
+                                                                 'registration_price': amount,
+                                                                 'registration_amount': amount * 100,
+                                                                 'dealer_number_tables': dealer_tables,
                                                                  'is_credit': method.is_credit,
                                                                  'method': method.name,
+                                                                 'shirt_size': shirt_size,
                                                                  'birthday': form.cleaned_data['birthday'].strftime("%B %d, %Y")})
             else:
                 return render(request, 'register/register.html', {'form': form})

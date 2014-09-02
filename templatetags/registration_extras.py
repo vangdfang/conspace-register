@@ -21,15 +21,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from django.contrib import admin
-from register.models import *
+from django import template
+from register.models import Convention, Registration, RegistrationLevel, DealerRegistrationLevel
 
-admin.site.register(Registration)
-admin.site.register(Payment)
-admin.site.register(RegistrationLevel)
-admin.site.register(DealerRegistrationLevel)
-admin.site.register(PaymentMethod)
-admin.site.register(Convention)
-admin.site.register(ShirtSize)
-admin.site.register(CouponCode)
-admin.site.register(CouponUse)
+register = template.Library()
+
+@register.filter
+def disabled_reglevel(value):
+    level = RegistrationLevel.objects.get(pk=value.choice_value)
+    if level.limit and len(Registration.objects.filter(registration_level=level)) >= level.limit:
+        return " disabled "
+    else:
+        return ""
+
+@register.filter
+def disabled_dealerreglevel(value):
+    # Don't bother specifying a choice for dealers
+    if not value.choice_value:
+        return ""
+    level = DealerRegistrationLevel.objects.get(pk=value.choice_value)
+    if len(Registration.objects.filter(dealer_registration_level=level)) + level.number_tables > level.convention.dealer_limit:
+        return " disabled "
+    else:
+        return ""

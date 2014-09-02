@@ -35,13 +35,24 @@ class Registration(models.Model):
     country = models.CharField(max_length=255)
     birthday = models.DateField()
     registration_level = models.ForeignKey('RegistrationLevel')
+    dealer_registration_level = models.ForeignKey('DealerRegistrationLevel', blank=True, null=True)
+    shirt_size = models.ForeignKey('ShirtSize')
+    volunteer = models.BooleanField(default=False, verbose_name='Contact me for volunteering opportunities')
+    volunteer_phone = models.CharField(max_length=20, blank=True, verbose_name='Phone Number (only required if volunteering)')
     ip = models.GenericIPAddressField()
 
     def __unicode__(self):
         return self.name + ' [' + self.badge_name + ']'
 
+class ShirtSize(models.Model):
+    seq = models.IntegerField()
+    size = models.CharField(max_length=20)
+
+    def __unicode__(self):
+        return self.size
+
 class Payment(models.Model):
-    registration_id = models.ForeignKey('Registration')
+    registration = models.ForeignKey('Registration')
     payment_method = models.ForeignKey('PaymentMethod')
     payment_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_received = models.DateTimeField(auto_now_add=True)
@@ -56,15 +67,41 @@ class RegistrationLevel(models.Model):
     background = models.CharField(max_length=255)
     color = models.CharField(max_length=7)
     deadline = models.DateTimeField()
-    active = models.BooleanField()
+    active = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return self.title
+        return self.title + ' [' + "%.02f" % (self.price) + ']'
+
+class DealerRegistrationLevel(models.Model):
+    convention = models.ForeignKey('Convention')
+    number_tables = models.IntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __unicode__(self):
+        return str(self.number_tables) + ' [' + "%.02f" % (self.price) + ']'
+
+class CouponCode(models.Model):
+    convention = models.ForeignKey('Convention')
+    code = models.CharField(max_length=255)
+    discount = models.DecimalField(max_digits=10, decimal_places=2)
+    percent = models.BooleanField(default=False)
+    single_use = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        if self.percent:
+            return self.code + ' [' + str(self.discount) + '%]'
+        else:
+            return self.code + ' [' + "%.02f" % (self.discount) + ']'
+
+class CouponUse(models.Model):
+    registration = models.ForeignKey('Registration')
+    coupon = models.ForeignKey('CouponCode')
 
 class Convention(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     agreement = models.TextField()
+    dealer_limit = models.IntegerField()
     stripe_publishable_key = models.CharField(max_length=255)
     stripe_secret_key = models.CharField(max_length=255)
 
@@ -72,9 +109,10 @@ class Convention(models.Model):
         return self.name
 
 class PaymentMethod(models.Model):
+    seq = models.IntegerField()
     name = models.CharField(max_length=255)
-    active = models.BooleanField()
-    is_credit = models.BooleanField()
+    active = models.BooleanField(default=True)
+    is_credit = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.name

@@ -24,9 +24,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.extras.widgets import SelectDateWidget
-from register.models import Registration
-from register.models import PaymentMethod
-from register.models import RegistrationLevel
+from django.utils import timezone
+from register.models import Registration, PaymentMethod, RegistrationLevel, DealerRegistrationLevel, ShirtSize, CouponCode, CouponUse
 from datetime import date, datetime
 import re
 
@@ -62,14 +61,21 @@ class RegistrationForm(forms.ModelForm):
                   'postal_code',
                   'country',
                   'registration_level',
+                  'dealer_registration_level',
                   'birthday',
+                  'shirt_size',
+                  'volunteer',
+                  'volunteer_phone',
                 ]
         widgets = {
                    'birthday': SelectDateWidget(years=BIRTH_YEAR_CHOICES),
                    'registration_level': forms.RadioSelect(),
+                   'dealer_registration_level': forms.RadioSelect(),
+                   'shirt_size': forms.RadioSelect(),
                 }
 
-    payment_method = forms.ModelChoiceField(widget=forms.RadioSelect, empty_label=None, queryset=PaymentMethod.objects.filter(active=True))
+    payment_method = forms.ModelChoiceField(widget=forms.RadioSelect, empty_label=None, queryset=PaymentMethod.objects.filter(active=True).order_by('seq'))
+    coupon_code = forms.CharField(required=False)
 
     def clean_birthday(self):
         data = self.cleaned_data['birthday']
@@ -87,10 +93,17 @@ class RegistrationForm(forms.ModelForm):
 
     def clean_registration_level(self):
         data = self.cleaned_data['registration_level']
-        if data.deadline.replace(tzinfo=None) <= datetime.now() or data.active == False:
+        if (data.deadline <= timezone.now() or
+           data.active == False or
+           (data.limit and len(Registration.objects.filter(registration_level=data)) >= data.limit)):
             raise ValidationError("That registration level is no longer available.")
 
         return data
+
+    def clean_dealer_registration_level(self):
+        data = self.cleaned_data['dealer_registration_level']
+        if data and len(Registration.objects.filter(dealer_registration_level=data)) + data.number_tables > data.convention.dealer_limit:
+            raise ValidationError("That dealer registration level is no longer available.")
 
     def clean_payment_method(self):
         data = self.cleaned_data['payment_method']
@@ -99,7 +112,32 @@ class RegistrationForm(forms.ModelForm):
 
         return data
 
+    def clean_volunteer_phone(self):
+        data = self.cleaned_data['volunteer_phone']
+        if not data and self.cleaned_data['volunteer']:
+            raise ValidationError("A contact phone number is required for volunteering.")
+
+        return data
+
+    def clean_coupon_code(self):
+        data = self.cleaned_data['coupon_code']
+        if data:
+            code = CouponCode.objects.get(code=data)
+            if not code:
+                raise ValidationError("That coupon code is not valid.")
+
+            if code.single_use and CouponUse.objects.filter(coupon=code):
+                raise ValidationError("That coupon code has already been used.")
+
+        return data
+
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
         self.fields['registration_level'].empty_label = None
-        self.fields['registration_level'].queryset=RegistrationLevel.objects.filter(active=True, deadline__gt=datetime.now())
+        self.fields['registration_level'].queryset=RegistrationLevel.objects.filter(active=True, deadline__gt=datetime.now()).order_by('seq')
+
+        self.fields['dealer_registration_level'].empty_label = 'None'
+        self.fields['dealer_registration_level'].queryset=DealerRegistrationLevel.objects.order_by('number_tables')
+
+        self.fields['shirt_size'].empty_label = None
+        self.fields['shirt_size'].queryset=ShirtSize.objects.order_by('seq')
