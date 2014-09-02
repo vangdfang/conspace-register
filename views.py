@@ -22,11 +22,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Create your views here.
-
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import View
 from django.core.exceptions import ObjectDoesNotExist
 
+from mcfc.models import UserProfile
 from register.forms import RegistrationForm
 from register.models import Convention, RegistrationLevel, DealerRegistrationLevel, Payment, PaymentMethod, ShirtSize, CouponCode, CouponUse
 
@@ -34,10 +35,14 @@ import stripe
 
 class Register(View):
     def get(self, request):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect('/accounts/login')
         form = RegistrationForm()
         return render(request, 'register/register.html', {'form': form})
 
     def post(self, request):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect('/accounts/login')
         if 'confirm' in request.POST.keys():
             form = request.session['form']
             dealer_price = 0
@@ -66,6 +71,7 @@ class Register(View):
                                                   description=reglevel.title)
                     reg = form.save(commit=False)
                     reg.ip = request.META['REMOTE_ADDR']
+                    reg.user = request.user
                     try:
                         reg.save()
                         method = PaymentMethod.objects.get(id=form['payment_method'].value)
@@ -91,6 +97,7 @@ class Register(View):
                 # Confirm normally; don't create payment record
                 reg = request.session['form'].save(commit=False)
                 reg.ip = request.META['REMOTE_ADDR']
+                reg.user = request.user
                 try:
                     reg.save()
                     if amount == 0:
