@@ -28,6 +28,7 @@ from django.utils import timezone
 from register.models import Registration, PaymentMethod, RegistrationLevel, DealerRegistrationLevel, ShirtSize, CouponCode, CouponUse
 from datetime import date, datetime
 import re
+import os
 
 BIRTH_YEAR_CHOICES = list(range(date.today().year, 1900, -1))
 
@@ -49,7 +50,7 @@ def validate_birthday(value):
         raise ValidationError("You must be 18 or older to register")
 
 def build_countries():
-    fp = open('countries.dat', 'r')
+    fp = open(os.path.join(os.path.dirname(__file__), 'countries.dat'), 'r')
     countries = fp.read().split(';')
     fp.close()
     # The Select widget expects a tuple of names and values.
