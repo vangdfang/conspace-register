@@ -26,6 +26,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import View
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
 
 from register.forms import RegistrationForm
 from register.models import Convention, RegistrationLevel, DealerRegistrationLevel, Payment, PaymentMethod, ShirtSize, CouponCode, CouponUse
@@ -95,7 +96,6 @@ class Register(View):
                     form.errors['__all__'] = form.error_class([e])
                     request.session.pop('form')
                     return render(request, 'register/register.html', {'form': form})
-                return render(request, 'register/success.html')
             else:
                 # Confirm normally; don't create payment record
                 reg = request.session['form'].save(commit=False)
@@ -116,7 +116,14 @@ class Register(View):
                 except Exception as e:
                     raise e
                 request.session.pop('form')
-                return render(request, 'register/success.html')
+
+            convention = Convention.objects.get()
+            send_mail('Convention Registration',
+                      "We have your registration down for %s.\n\n" % ( convention.name ) +
+                      'If you have any questions, please let us know!',
+                      convention.contact_email,
+                      [form.cleaned_data['email']], fail_silently=True)
+            return render(request, 'register/success.html')
         else:
             form = RegistrationForm(request.POST)
             if form.is_valid():
