@@ -44,6 +44,7 @@ class Registration(models.Model):
     shirt_size = models.ForeignKey('ShirtSize')
     volunteer = models.BooleanField(default=False, verbose_name='Contact me for volunteering opportunities')
     volunteer_phone = models.CharField(max_length=20, blank=True, verbose_name='Phone Number (only required if volunteering)')
+    checked_in = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
 
     def __str__(self):
@@ -112,6 +113,7 @@ class Convention(models.Model):
     description = models.TextField()
     agreement = models.TextField()
     dealer_limit = models.IntegerField()
+    registration_open = models.BooleanField(default=True)
     stripe_publishable_key = models.CharField(max_length=255)
     stripe_secret_key = models.CharField(max_length=255)
 

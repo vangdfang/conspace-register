@@ -25,9 +25,8 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import View
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 
-from mcfc.models import UserProfile
 from register.forms import RegistrationForm
 from register.models import Convention, RegistrationLevel, DealerRegistrationLevel, Payment, PaymentMethod, ShirtSize, CouponCode, CouponUse
 
@@ -37,12 +36,16 @@ class Register(View):
     def get(self, request):
         if not request.user.is_authenticated():
             return HttpResponseRedirect('/accounts/login')
+        if not Convention.objects.get().registration_open:
+            raise PermissionDenied()
         form = RegistrationForm()
         return render(request, 'register/register.html', {'form': form})
 
     def post(self, request):
         if not request.user.is_authenticated():
             return HttpResponseRedirect('/accounts/login')
+        if not Convention.objects.get().registration_open:
+            raise PermissionDenied()
         if 'confirm' in request.POST.keys():
             form = request.session['form']
             dealer_price = 0
