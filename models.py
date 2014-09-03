@@ -24,8 +24,10 @@
 from django.db import models
 
 from django.contrib.auth.models import User
+from django.utils.encoding import python_2_unicode_compatible
 
 # Create your models here.
+@python_2_unicode_compatible
 class Registration(models.Model):
     user = models.ForeignKey(User)
     name = models.CharField(max_length=255)
@@ -38,20 +40,21 @@ class Registration(models.Model):
     country = models.CharField(max_length=255)
     birthday = models.DateField()
     registration_level = models.ForeignKey('RegistrationLevel')
-    dealer_registration_level = models.ForeignKey('DealerRegistrationLevel', blank=True, null=True)
+    dealer_registration_level = models.ForeignKey('DealerRegistrationLevel', verbose_name='Dealer Tables', blank=True, null=True)
     shirt_size = models.ForeignKey('ShirtSize')
     volunteer = models.BooleanField(default=False, verbose_name='Contact me for volunteering opportunities')
     volunteer_phone = models.CharField(max_length=20, blank=True, verbose_name='Phone Number (only required if volunteering)')
     ip = models.GenericIPAddressField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name + ' [' + self.badge_name + ']'
 
+@python_2_unicode_compatible
 class ShirtSize(models.Model):
     seq = models.IntegerField()
     size = models.CharField(max_length=20)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.size
 
 class Payment(models.Model):
@@ -60,6 +63,7 @@ class Payment(models.Model):
     payment_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_received = models.DateTimeField(auto_now_add=True)
 
+@python_2_unicode_compatible
 class RegistrationLevel(models.Model):
     seq = models.IntegerField()
     convention = models.ForeignKey('Convention')
@@ -72,17 +76,19 @@ class RegistrationLevel(models.Model):
     deadline = models.DateTimeField()
     active = models.BooleanField(default=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title + ' [' + "%.02f" % (self.price) + ']'
 
+@python_2_unicode_compatible
 class DealerRegistrationLevel(models.Model):
     convention = models.ForeignKey('Convention')
     number_tables = models.IntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.number_tables) + ' [' + "%.02f" % (self.price) + ']'
 
+@python_2_unicode_compatible
 class CouponCode(models.Model):
     convention = models.ForeignKey('Convention')
     code = models.CharField(max_length=255)
@@ -90,9 +96,9 @@ class CouponCode(models.Model):
     percent = models.BooleanField(default=False)
     single_use = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.percent:
-            return self.code + ' [' + str(self.discount) + '%]'
+            return self.code + ' [' + "%d%%" % (self.discount) + '%]'
         else:
             return self.code + ' [' + "%.02f" % (self.discount) + ']'
 
@@ -100,6 +106,7 @@ class CouponUse(models.Model):
     registration = models.ForeignKey('Registration')
     coupon = models.ForeignKey('CouponCode')
 
+@python_2_unicode_compatible
 class Convention(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -108,14 +115,15 @@ class Convention(models.Model):
     stripe_publishable_key = models.CharField(max_length=255)
     stripe_secret_key = models.CharField(max_length=255)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
+@python_2_unicode_compatible
 class PaymentMethod(models.Model):
     seq = models.IntegerField()
     name = models.CharField(max_length=255)
     active = models.BooleanField(default=True)
     is_credit = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
