@@ -48,6 +48,14 @@ def validate_birthday(value):
     if years < 18:
         raise ValidationError("You must be 18 or older to register")
 
+def build_countries():
+    fp = open('countries.dat', 'r')
+    countries = fp.read().split(';')
+    fp.close()
+    # The Select widget expects a tuple of names and values.
+    # For us, these are the same...
+    return [(x,x) for x in countries]
+
 class RegistrationForm(forms.ModelForm):
     class Meta:
         model = Registration
@@ -69,6 +77,7 @@ class RegistrationForm(forms.ModelForm):
                 ]
         widgets = {
                    'birthday': SelectDateWidget(years=BIRTH_YEAR_CHOICES),
+                   'country': forms.Select(choices=build_countries()),
                    'registration_level': forms.RadioSelect(),
                    'dealer_registration_level': forms.RadioSelect(),
                    'shirt_size': forms.RadioSelect(),
