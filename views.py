@@ -69,7 +69,7 @@ class Register(View):
                 try:
                     stripe.api_key = Convention.objects.get().stripe_secret_key
                     charge = stripe.Charge.create(
-                                                  amount=amount * 100,
+                                                  amount=int(amount) * 100,
                                                   currency="USD",
                                                   card=request.POST['stripeToken'],
                                                   description=reglevel.title)
@@ -155,7 +155,7 @@ class Register(View):
                                                                  'form': form,
                                                                  'registration_level': reglevel.title,
                                                                  'registration_price': amount,
-                                                                 'registration_amount': amount * 100,
+                                                                 'registration_amount': int(amount) * 100,
                                                                  'dealer_number_tables': dealer_tables,
                                                                  'is_credit': method.is_credit,
                                                                  'method': method.name,
