@@ -149,7 +149,7 @@ class Register(View):
                 shirt_size = ShirtSize.objects.get(id=form['shirt_size'].value)
                 amount = max(((reglevel.price + dealer_price - discount_amount) * (1 - discount_percent)), 0)
                 if amount == 0:
-                    method = PaymentMethod.objects.filter(active=True, is_credit=False)[0]
+                    method.is_credit = False
 
                 return render(request, 'register/confirm.html', {'convention': convention,
                                                                  'form': form,
