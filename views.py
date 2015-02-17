@@ -82,7 +82,8 @@ class Register(View):
                         method = PaymentMethod.objects.get(id=form['payment_method'].value)
                         payment = Payment(registration=reg,
                                           payment_method=method,
-                                          payment_amount=amount)
+                                          payment_amount=amount,
+                                          payment_extra=charge.id)
                         payment.save()
                         if code:
                             couponuse = CouponUse(registration=reg,
