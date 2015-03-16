@@ -25,6 +25,7 @@ from django.db import models
 
 from django.contrib.auth.models import User
 from django.utils.encoding import python_2_unicode_compatible
+from django.core.exceptions import ObjectDoesNotExist
 
 # Create your models here.
 @python_2_unicode_compatible
@@ -46,6 +47,31 @@ class Registration(models.Model):
     volunteer_phone = models.CharField(max_length=20, blank=True, verbose_name='Phone Number (only required if volunteering)')
     checked_in = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
+
+    def paid(self):
+        coupon = None
+        try:
+            coupon_use = CouponUse.objects.get(registration=self)
+            coupon = coupon_use.coupon
+            if (coupon and ((coupon.percent and coupon.discount == 100) or
+                           (coupon.percent == False and coupon.discount == self.registration_level.price))):
+                return True
+        except ObjectDoesNotExist:
+            pass
+
+        try:
+            payment = Payment.objects.get(registration=self)
+            if (payment.payment_amount == self.registration_level.price):
+                return True
+            if (coupon and ((coupon.percent and ((self.registration_level.price * coupon.discount) + payment.payment_amount) == self.registration_level.price) or
+                            (coupon.percent == False and ((payment.payment_amount + coupon.discount) == self.registration_level.price)))):
+                return True
+        except ObjectDoesNotExist:
+            pass
+
+        return False
+    paid.boolean = True
+    paid.short_description = 'Paid?'
 
     def __str__(self):
         return self.name + ' [' + self.badge_name + ']'

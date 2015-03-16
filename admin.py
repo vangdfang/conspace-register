@@ -24,7 +24,11 @@
 from django.contrib import admin
 from register.models import *
 
-admin.site.register(Registration)
+class RegistrationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid')
+    search_fields = ['name', 'badge_name', 'email']
+
+admin.site.register(Registration, RegistrationAdmin)
 admin.site.register(Payment)
 admin.site.register(RegistrationLevel)
 admin.site.register(DealerRegistrationLevel)
