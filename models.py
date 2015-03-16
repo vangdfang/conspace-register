@@ -60,11 +60,14 @@ class Registration(models.Model):
             pass
 
         try:
-            payment = Payment.objects.get(registration=self)
-            if (payment.payment_amount == self.registration_level.price):
+            payments = Payment.objects.filter(registration=self, refunded_by=None)
+            payment_amount = 0
+            for payment in payments:
+                payment_amount += payment.payment_amount
+            if (payment_amount == self.registration_level.price):
                 return True
-            if (coupon and ((coupon.percent and ((self.registration_level.price * coupon.discount) + payment.payment_amount) == self.registration_level.price) or
-                            (coupon.percent == False and ((payment.payment_amount + coupon.discount) == self.registration_level.price)))):
+            if (coupon and ((coupon.percent and ((self.registration_level.price * coupon.discount) + payment_amount) == self.registration_level.price) or
+                            (coupon.percent == False and ((payment_amount + coupon.discount) == self.registration_level.price)))):
                 return True
         except ObjectDoesNotExist:
             pass

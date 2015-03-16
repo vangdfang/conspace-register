@@ -22,11 +22,53 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from django.contrib import admin
+from django.contrib import messages
+from django.contrib.admin.helpers import ActionForm
+from django.core.exceptions import ObjectDoesNotExist
+from django import forms
 from register.models import *
+
+class RegistrationAdminForm(ActionForm):
+    amount = forms.FloatField(widget=forms.NumberInput(attrs={'size': '5'}), required=False)
+    method = forms.ModelChoiceField(empty_label=None, queryset=PaymentMethod.objects.order_by('seq'), required=False)
 
 class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid')
     search_fields = ['name', 'badge_name', 'email']
+    actions = ['mark_checked_in', 'apply_payment', 'refund_payment']
+    action_form = RegistrationAdminForm
+
+    def mark_checked_in(self, request, queryset):
+        queryset.update(checked_in=True)
+        for id in queryset:
+            self.message_user(request, '%s successfully checked in!' % id)
+    mark_checked_in.short_description = 'Check in attendee'
+
+    def apply_payment(self, request, queryset):
+        try: 
+            amount = request.POST['amount']
+            method = PaymentMethod.objects.get(id=request.POST['method'])
+        except ObjectDoesNotExist:
+            method = None
+        if (method and amount):
+            for id in queryset:
+                payment = Payment(registration=id,
+                                  payment_method=method,
+                                  payment_amount=amount,
+                                  created_by=request.user)
+                payment.save()
+                self.message_user(request, 'Applied %.02f payment by %s to %s' % (amount, method, id))
+        else:
+            self.message_user(request, 'Must specify an amount and payment method!', messages.ERROR)
+
+    def refund_payment(self, request, queryset):
+        for id in queryset:
+            payments = Payment.objects.filter(registration=id)
+            for payment in payments:
+                payment.refunded_by=request.user
+                payment.save()
+                self.message_user(request, 'Refunded %.02f payment by %s to %s' % (payment.payment_amount, payment.payment_method, id))
+    refund_payment.short_description = 'Refund all payments from attendee'
 
 admin.site.register(Registration, RegistrationAdmin)
 admin.site.register(Payment)
