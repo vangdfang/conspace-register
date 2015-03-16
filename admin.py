@@ -26,6 +26,7 @@ from django.contrib import messages
 from django.contrib.admin.helpers import ActionForm
 from django.core.exceptions import ObjectDoesNotExist
 from django import forms
+import stripe
 from register.models import *
 
 class RegistrationAdminForm(ActionForm):
@@ -65,9 +66,20 @@ class RegistrationAdmin(admin.ModelAdmin):
         for id in queryset:
             payments = Payment.objects.filter(registration=id)
             for payment in payments:
-                payment.refunded_by=request.user
-                payment.save()
-                self.message_user(request, 'Refunded %.02f payment by %s to %s' % (payment.payment_amount, payment.payment_method, id))
+                if (payment.payment_method.is_credit and payment.payment_extra):
+                    try:
+                        stripe.api_key = Convention.objects.get().stripe_secret_key
+                        charge = stripe.Charge.retrieve(payment.payment_extra)
+                        refund = charge.refunds.create()
+                        payment.refunded_by = request.user
+                        payment.save()
+                        self.message_user(request, 'Refunded %.02f payment by Stripe to %s' % (refund.amount / 100, id))
+                    except stripe.error.StripeError, e:
+                        self.message_user(request, 'Failed to refund %.02f payment by Stripe to %s (%s)' % (payment.payment_amount, id, e.json_body['error']['message']), messages.ERROR)
+                else:
+                    payment.refunded_by = request.user
+                    payment.save()
+                    self.message_user(request, 'Refunded %.02f payment by %s to %s' % (payment.payment_amount, payment.payment_method, id))
     refund_payment.short_description = 'Refund all payments from attendee'
 
 admin.site.register(Registration, RegistrationAdmin)
