@@ -35,7 +35,7 @@ class RegistrationAdminForm(ActionForm):
     method = forms.ModelChoiceField(empty_label=None, queryset=PaymentMethod.objects.order_by('seq'), required=False)
 
 class RegistrationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid')
+    list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
     search_fields = ['name', 'badge_name', 'email']
     actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge']
     action_form = RegistrationAdminForm
@@ -92,6 +92,7 @@ class RegistrationAdmin(admin.ModelAdmin):
 
 admin.site.register(Registration, RegistrationAdmin)
 admin.site.register(Payment)
+admin.site.register(BadgeAssignment)
 admin.site.register(RegistrationLevel)
 admin.site.register(DealerRegistrationLevel)
 admin.site.register(PaymentMethod)

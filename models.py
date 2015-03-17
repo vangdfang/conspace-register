@@ -76,6 +76,15 @@ class Registration(models.Model):
     paid.boolean = True
     paid.short_description = 'Paid?'
 
+    def badge_number(self):
+        try:
+            badges = BadgeAssignment.objects.filter(registration=self).order_by('-id')
+            if (badges.count() >= 1):
+                return '%05d'  % badges[0].id
+        except ObjectDoesNotExist:
+            pass
+        return None
+
     def __str__(self):
         return self.name + ' [' + self.badge_name + ']'
 
@@ -86,7 +95,7 @@ class BadgeAssignment(models.Model):
     printed_on = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.registration.badge_name + ' [' + self.id + ']'
+        return self.registration.badge_name + ' [' + "%05d" % (self.id) + ']'
 
 @python_2_unicode_compatible
 class ShirtSize(models.Model):
