@@ -25,6 +25,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.helpers import ActionForm
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import render
 from django import forms
 import stripe
 from register.models import *
@@ -36,7 +37,7 @@ class RegistrationAdminForm(ActionForm):
 class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid')
     search_fields = ['name', 'badge_name', 'email']
-    actions = ['mark_checked_in', 'apply_payment', 'refund_payment']
+    actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge']
     action_form = RegistrationAdminForm
 
     def mark_checked_in(self, request, queryset):
@@ -81,6 +82,13 @@ class RegistrationAdmin(admin.ModelAdmin):
                     payment.save()
                     self.message_user(request, 'Refunded %.02f payment by %s to %s' % (payment.payment_amount, payment.payment_method, id))
     refund_payment.short_description = 'Refund all payments from attendee'
+
+    def print_badge(self, request, queryset):
+        for user in queryset:
+            badge = BadgeAssignment(registration=user, printed_by=request.user)
+            badge.save()
+            user.badge_number = '%05d' % badge.id
+        return render(request, 'register/badge.html', {'badges': queryset})
 
 admin.site.register(Registration, RegistrationAdmin)
 admin.site.register(Payment)

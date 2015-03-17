@@ -80,6 +80,15 @@ class Registration(models.Model):
         return self.name + ' [' + self.badge_name + ']'
 
 @python_2_unicode_compatible
+class BadgeAssignment(models.Model):
+    registration = models.ForeignKey('Registration')
+    printed_by = models.ForeignKey(User, related_name="printed_by_user")
+    printed_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.registration.badge_name + ' [' + self.id + ']'
+
+@python_2_unicode_compatible
 class ShirtSize(models.Model):
     seq = models.IntegerField()
     size = models.CharField(max_length=20)
