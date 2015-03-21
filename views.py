@@ -57,13 +57,15 @@ class Register(View):
             discount_amount = 0
             discount_percent = 0
             code = None
+            reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
             if form.cleaned_data['coupon_code']:
                 code = CouponCode.objects.get(code=form.cleaned_data['coupon_code'])
                 if code.percent:
                     discount_percent = code.discount
                 else:
                     discount_amount = code.discount
-            reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
+                if code.force_registration_level:
+                    reglevel = code.force_registration_level
             amount = max(((reglevel.price + dealer_price - discount_amount) * (1 - discount_percent)), 0)
             if 'stripeToken' in request.POST.keys():
                 # Process Stripe payment
@@ -77,6 +79,7 @@ class Register(View):
                     reg = form.save(commit=False)
                     reg.ip = request.META['REMOTE_ADDR']
                     reg.user = request.user
+                    reg.registration_level = reglevel
                     try:
                         reg.save()
                         method = PaymentMethod.objects.get(id=form['payment_method'].value)
@@ -103,6 +106,7 @@ class Register(View):
                 reg = request.session['form'].save(commit=False)
                 reg.ip = request.META['REMOTE_ADDR']
                 reg.user = request.user
+                reg.registration_level = reglevel
                 try:
                     reg.save()
                     if amount == 0:
@@ -149,6 +153,8 @@ class Register(View):
                         discount_percent = code.discount
                     else:
                         discount_amount = code.discount
+                    if code.force_registration_level:
+                        reglevel = code.force_registration_level
 
                 method = PaymentMethod.objects.get(id=form['payment_method'].value)
                 shirt_size = ShirtSize.objects.get(id=form['shirt_size'].value)

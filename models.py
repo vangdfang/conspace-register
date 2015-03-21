@@ -150,10 +150,11 @@ class CouponCode(models.Model):
     discount = models.DecimalField(max_digits=10, decimal_places=2)
     percent = models.BooleanField(default=False)
     single_use = models.BooleanField(default=False)
+    force_registration_level = models.ForeignKey('RegistrationLevel', null=True, blank=True)
 
     def __str__(self):
         if self.percent:
-            return self.code + ' [' + "%d%%" % (self.discount) + '%]'
+            return self.code + ' [' + "%d%%" % (self.discount) + ']'
         else:
             return self.code + ' [' + "%.02f" % (self.discount) + ']'
 
