@@ -157,9 +157,13 @@ class CouponCode(models.Model):
         else:
             return self.code + ' [' + "%.02f" % (self.discount) + ']'
 
+@python_2_unicode_compatible
 class CouponUse(models.Model):
     registration = models.ForeignKey('Registration')
     coupon = models.ForeignKey('CouponCode')
+
+    def __str__(self):
+        return '%s - %s' % (self.registration, self.coupon)
 
 @python_2_unicode_compatible
 class Convention(models.Model):

@@ -22,7 +22,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from django import forms
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.forms.extras.widgets import SelectDateWidget
 from django.utils import timezone
 from register.models import Registration, PaymentMethod, RegistrationLevel, DealerRegistrationLevel, ShirtSize, CouponCode, CouponUse
@@ -132,7 +132,11 @@ class RegistrationForm(forms.ModelForm):
     def clean_coupon_code(self):
         data = self.cleaned_data['coupon_code']
         if data:
-            code = CouponCode.objects.get(code=data)
+            try:
+                code = CouponCode.objects.get(code=data)
+            except ObjectDoesNotExist:
+                code = None
+
             if not code:
                 raise ValidationError("That coupon code is not valid.")
 
