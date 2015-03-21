@@ -37,7 +37,7 @@ class RegistrationAdminForm(ActionForm):
 class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
     list_filter = ('registration_level', 'shirt_size', 'checked_in')
-    search_fields = ['name', 'badge_name', 'email']
+    search_fields = ['name', 'badge_name', 'email', 'badgeassignment__id']
     actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge']
     action_form = RegistrationAdminForm
 
