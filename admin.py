@@ -36,6 +36,7 @@ class RegistrationAdminForm(ActionForm):
 
 class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
+    list_filter = ('registration_level', 'shirt_size', 'checked_in')
     search_fields = ['name', 'badge_name', 'email']
     actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge']
     action_form = RegistrationAdminForm
@@ -92,7 +93,11 @@ class RegistrationAdmin(admin.ModelAdmin):
 
 admin.site.register(Registration, RegistrationAdmin)
 admin.site.register(Payment)
-admin.site.register(BadgeAssignment)
+
+class BadgeAssignmentAdmin(admin.ModelAdmin):
+    search_fields = ['id', 'registration__name', 'registration__badge_name', 'registration__email']
+
+admin.site.register(BadgeAssignment, BadgeAssignmentAdmin)
 admin.site.register(RegistrationLevel)
 admin.site.register(DealerRegistrationLevel)
 admin.site.register(PaymentMethod)
