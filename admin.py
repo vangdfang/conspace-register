@@ -25,6 +25,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.helpers import ActionForm
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.shortcuts import render
 from django import forms
 import stripe
@@ -84,12 +85,21 @@ class RegistrationAdmin(admin.ModelAdmin):
                     self.message_user(request, 'Refunded %.02f payment by %s to %s' % (payment.payment_amount, payment.payment_method, id))
     refund_payment.short_description = 'Refund all payments from attendee'
 
+    @transaction.commit_manually
     def print_badge(self, request, queryset):
+        printable = True
         for user in queryset:
+            if not user.paid():
+                self.message_user(request, 'Cannot print unpaid badge for %s' % (user), messages.ERROR)
+                printable = False
             badge = BadgeAssignment(registration=user, printed_by=request.user)
             badge.save()
             user.badge_number = '%05d' % badge.id
-        return render(request, 'register/badge.html', {'badges': queryset})
+        if printable:
+            transaction.commit()
+            return render(request, 'register/badge.html', {'badges': queryset})
+        else:
+            transaction.rollback()
 
 admin.site.register(Registration, RegistrationAdmin)
 admin.site.register(Payment)
