@@ -41,6 +41,7 @@ class RegistrationAdmin(admin.ModelAdmin):
     search_fields = ['name', 'badge_name', 'email', 'badgeassignment__id']
     actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge']
     action_form = RegistrationAdminForm
+    ordering = ('id',)
 
     def mark_checked_in(self, request, queryset):
         queryset.update(checked_in=True)
