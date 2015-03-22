@@ -29,6 +29,7 @@ from register.models import Registration, PaymentMethod, RegistrationLevel, Deal
 from datetime import date, datetime
 import re
 import os
+import codecs
 
 BIRTH_YEAR_CHOICES = list(range(date.today().year, 1900, -1))
 
@@ -50,7 +51,7 @@ def validate_birthday(value):
         raise ValidationError("You must be 18 or older to register")
 
 def build_countries():
-    fp = open(os.path.join(os.path.dirname(__file__), 'countries.dat'), 'r')
+    fp = codecs.open(os.path.join(os.path.dirname(__file__), 'countries.dat'), mode='r', encoding='utf-8')
     countries = fp.read().split(';')
     fp.close()
     # The Select widget expects a tuple of names and values.
