@@ -85,7 +85,6 @@ class RegistrationAdmin(admin.ModelAdmin):
                     self.message_user(request, 'Refunded %.02f payment by %s to %s' % (payment.payment_amount, payment.payment_method, id))
     refund_payment.short_description = 'Refund all payments from attendee'
 
-    @transaction.commit_manually
     def print_badge(self, request, queryset):
         printable = True
         ac = transaction.get_autocommit()
