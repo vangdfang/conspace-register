@@ -37,7 +37,7 @@ class RegistrationAdminForm(ActionForm):
 
 class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
-    list_filter = ('registration_level', 'shirt_size', 'checked_in')
+    list_filter = ('registration_level', 'shirt_size', 'checked_in', 'volunteer')
     search_fields = ['name', 'badge_name', 'email', 'badgeassignment__id']
     actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge']
     action_form = RegistrationAdminForm
@@ -58,10 +58,10 @@ class RegistrationAdmin(admin.ModelAdmin):
             for id in queryset:
                 payment = Payment(registration=id,
                                   payment_method=method,
-                                  payment_amount=amount,
+                                  payment_amount=float(amount),
                                   created_by=request.user)
                 payment.save()
-                self.message_user(request, 'Applied %.02f payment by %s to %s' % (amount, method, id))
+                self.message_user(request, 'Applied %.02f payment by %s to %s' % (float(amount), method, id))
         else:
             self.message_user(request, 'Must specify an amount and payment method!', messages.ERROR)
 
@@ -77,7 +77,7 @@ class RegistrationAdmin(admin.ModelAdmin):
                         payment.refunded_by = request.user
                         payment.save()
                         self.message_user(request, 'Refunded %.02f payment by Stripe to %s' % (refund.amount / 100, id))
-                    except stripe.error.StripeError, e:
+                    except stripe.error.StripeError as e:
                         self.message_user(request, 'Failed to refund %.02f payment by Stripe to %s (%s)' % (payment.payment_amount, id, e.json_body['error']['message']), messages.ERROR)
                 else:
                     payment.refunded_by = request.user
@@ -88,6 +88,8 @@ class RegistrationAdmin(admin.ModelAdmin):
     @transaction.commit_manually
     def print_badge(self, request, queryset):
         printable = True
+        ac = transaction.get_autocommit()
+        transaction.set_autocommit(False)
         for user in queryset:
             if not user.paid():
                 self.message_user(request, 'Cannot print unpaid badge for %s' % (user), messages.ERROR)
@@ -97,9 +99,11 @@ class RegistrationAdmin(admin.ModelAdmin):
             user.badge_number = '%05d' % badge.id
         if printable:
             transaction.commit()
+            transaction.set_autocommit(ac)
             return render(request, 'register/badge.html', {'badges': queryset})
         else:
             transaction.rollback()
+            transaction.set_autocommit(ac)
 
 admin.site.register(Registration, RegistrationAdmin)
 admin.site.register(Payment)

@@ -64,10 +64,10 @@ class Registration(models.Model):
             payment_amount = 0
             for payment in payments:
                 payment_amount += payment.payment_amount
-            if (payment_amount == self.registration_level.price):
+            if (payment_amount >= self.registration_level.price):
                 return True
-            if (coupon and ((coupon.percent and ((self.registration_level.price * coupon.discount) + payment_amount) == self.registration_level.price) or
-                            (coupon.percent == False and ((payment_amount + coupon.discount) == self.registration_level.price)))):
+            if (coupon and ((coupon.percent and ((self.registration_level.price * coupon.discount) + payment_amount) >= self.registration_level.price) or
+                            (coupon.percent == False and ((payment_amount + coupon.discount) >= self.registration_level.price)))):
                 return True
         except ObjectDoesNotExist:
             pass
