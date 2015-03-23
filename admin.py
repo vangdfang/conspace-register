@@ -34,6 +34,7 @@ from register.models import *
 class RegistrationAdminForm(ActionForm):
     amount = forms.FloatField(widget=forms.NumberInput(attrs={'size': '5'}), required=False)
     method = forms.ModelChoiceField(empty_label=None, queryset=PaymentMethod.objects.order_by('seq'), required=False)
+    reprint = forms.BooleanField(required=False)
 
 class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
@@ -94,9 +95,15 @@ class RegistrationAdmin(admin.ModelAdmin):
             if not user.paid():
                 self.message_user(request, 'Cannot print unpaid badge for %s' % (user), messages.ERROR)
                 printable = False
-            badge = BadgeAssignment(registration=user, printed_by=request.user)
-            badge.save()
-            user.badge_number = '%05d' % badge.id
+            badge_number = None
+            reprint = request.POST.get('reprint')
+            if reprint:
+                badge_number = user.badge_number()
+            if not reprint or not badge_number:
+                badge = BadgeAssignment(registration=user, printed_by=request.user)
+                badge.save()
+                badge_number = badge.id
+            user.badge_number = '%05d' % int(badge_number)
         if printable:
             transaction.commit()
             transaction.set_autocommit(ac)
