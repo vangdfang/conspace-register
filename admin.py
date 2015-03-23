@@ -106,7 +106,12 @@ class RegistrationAdmin(admin.ModelAdmin):
             transaction.set_autocommit(ac)
 
 admin.site.register(Registration, RegistrationAdmin)
-admin.site.register(Payment)
+
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('registration', 'payment_method', 'payment_amount', 'payment_received', 'created_by', 'refunded_by')
+    list_filter = ('payment_method',)
+    search_fields = ['registration__name', 'registration__badge_name', 'registration__email']
+admin.site.register(Payment, PaymentAdmin)
 
 class BadgeAssignmentAdmin(admin.ModelAdmin):
     search_fields = ['id', 'registration__name', 'registration__badge_name', 'registration__email']
