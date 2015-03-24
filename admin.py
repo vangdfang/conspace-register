@@ -32,8 +32,8 @@ import stripe
 from register.models import *
 
 class RegistrationAdminForm(ActionForm):
-    amount = forms.FloatField(widget=forms.NumberInput(attrs={'size': '5'}), required=False)
-    method = forms.ModelChoiceField(empty_label=None, queryset=PaymentMethod.objects.order_by('seq'), required=False)
+    amount = forms.FloatField(widget=forms.NumberInput(attrs={'style': 'width:auto'}), required=False)
+    method = forms.ModelChoiceField(widget=forms.Select(attrs={'style': 'width:auto'}), empty_label=None, queryset=PaymentMethod.objects.order_by('seq'), required=False)
     reprint = forms.BooleanField(required=False)
 
 class RegistrationAdmin(admin.ModelAdmin):
