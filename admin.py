@@ -40,7 +40,7 @@ class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
     list_filter = ('registration_level', 'shirt_size', 'checked_in', 'volunteer')
     search_fields = ['name', 'badge_name', 'email', 'badgeassignment__id']
-    actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge']
+    actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge', 'print_badge_list']
     action_form = RegistrationAdminForm
     ordering = ('id',)
 
@@ -111,6 +111,20 @@ class RegistrationAdmin(admin.ModelAdmin):
         else:
             transaction.rollback()
             transaction.set_autocommit(ac)
+
+    def print_badge_list(self, request, queryset):
+        badges = Registration.objects.filter(checked_in=False).order_by('name')
+        split_badges = []
+        temp_list = []
+        for badge in badges:
+            if badge.badge_number():
+                temp_list.append({'name': badge.name, 'badge_name': badge.badge_name, 'badge_number': badge.badge_number()})
+            if len(temp_list) == 50:
+                split_badges.append(temp_list)
+                temp_list = []
+        if len(temp_list) > 0:
+            split_badges.append(temp_list)
+        return render(request, 'register/badgelist.html', {'lists': split_badges})
 
 admin.site.register(Registration, RegistrationAdmin)
 
