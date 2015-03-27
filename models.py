@@ -128,6 +128,7 @@ class RegistrationLevel(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField()
     background = models.CharField(max_length=255)
+    added_text = models.CharField(max_length=255, null=True, blank=True)
     color = models.CharField(max_length=7)
     deadline = models.DateTimeField()
     active = models.BooleanField(default=True)
