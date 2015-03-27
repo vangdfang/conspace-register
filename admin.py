@@ -126,8 +126,8 @@ class RegistrationAdmin(admin.ModelAdmin):
         temp_list = []
         for badge in badges:
             if badge.badge_number():
-                temp_list.append({'name': badge.name, 'badge_name': badge.badge_name, 'badge_number': badge.badge_number()})
-            if len(temp_list) == 30:
+                temp_list.append({'name': badge.name, 'badge_name': badge.badge_name, 'badge_number': badge.badge_number(), 'registration_level': badge.registration_level.title})
+            if len(temp_list) == 25:
                 split_badges.append({'list': temp_list, 'last': False})
                 temp_list = []
         if len(temp_list) > 0:
