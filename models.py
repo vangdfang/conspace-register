@@ -175,6 +175,7 @@ class Convention(models.Model):
     agreement = models.TextField()
     dealer_limit = models.IntegerField()
     registration_open = models.BooleanField(default=True)
+    active = models.BooleanField(default=False)
     contact_email = models.EmailField()
     stripe_publishable_key = models.CharField(max_length=255)
     stripe_secret_key = models.CharField(max_length=255)

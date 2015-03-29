@@ -25,7 +25,7 @@ from django import forms
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.forms.extras.widgets import SelectDateWidget
 from django.utils import timezone
-from register.models import Registration, PaymentMethod, RegistrationLevel, DealerRegistrationLevel, ShirtSize, CouponCode, CouponUse
+from register.models import Convention, Registration, PaymentMethod, RegistrationLevel, DealerRegistrationLevel, ShirtSize, CouponCode, CouponUse
 from datetime import date, datetime
 import re
 import os
@@ -148,11 +148,12 @@ class RegistrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
+        current_convention = Convention.objects.filter(active=True).order_by('-id')[0]
         self.fields['registration_level'].empty_label = None
-        self.fields['registration_level'].queryset=RegistrationLevel.objects.filter(active=True, deadline__gt=datetime.now()).order_by('seq')
+        self.fields['registration_level'].queryset=RegistrationLevel.objects.filter(active=True, deadline__gt=datetime.now(), convention=current_convention).order_by('seq')
 
         self.fields['dealer_registration_level'].empty_label = 'None'
-        self.fields['dealer_registration_level'].queryset=DealerRegistrationLevel.objects.order_by('number_tables')
+        self.fields['dealer_registration_level'].queryset=DealerRegistrationLevel.objects.filter(convention=current_convention).order_by('number_tables')
 
         self.fields['shirt_size'].empty_label = None
         self.fields['shirt_size'].queryset=ShirtSize.objects.order_by('seq')

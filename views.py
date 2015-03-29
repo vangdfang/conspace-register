@@ -38,7 +38,7 @@ class Register(View):
     def get(self, request):
         if not request.user.is_authenticated():
             return HttpResponseRedirect('/accounts/login')
-        if not Convention.objects.get().registration_open:
+        if not Convention.objects.filter(active=True).order_by('-id')[0].registration_open:
             raise PermissionDenied()
         form = RegistrationForm()
         return render(request, 'register/register.html', {'form': form})
@@ -46,7 +46,7 @@ class Register(View):
     def post(self, request):
         if not request.user.is_authenticated():
             return HttpResponseRedirect('/accounts/login')
-        if not Convention.objects.get().registration_open:
+        if not Convention.objects.filter(active=True).order_by('-id')[0].registration_open:
             raise PermissionDenied()
         if 'confirm' in request.POST.keys():
             form = request.session['form']
@@ -70,7 +70,7 @@ class Register(View):
             if 'stripeToken' in request.POST.keys():
                 # Process Stripe payment
                 try:
-                    stripe.api_key = Convention.objects.get().stripe_secret_key
+                    stripe.api_key = Convention.objects.filter(active=True).order_by('-id')[0].stripe_secret_key
                     charge = stripe.Charge.create(
                                                   amount=int(amount) * 100,
                                                   currency="USD",
@@ -123,7 +123,7 @@ class Register(View):
                     raise e
                 request.session.pop('form')
 
-            convention = Convention.objects.get()
+            convention = Convention.objects.filter(active=True).order_by('-id')[0]
             try:
                 send_mail('Convention Registration',
                           "We have your registration down for %s.\n\n" % ( convention.name ) +
@@ -137,7 +137,7 @@ class Register(View):
             form = RegistrationForm(request.POST)
             if form.is_valid():
                 request.session['form'] = form
-                convention = Convention.objects.get()
+                convention = Convention.objects.filter(active=True).order_by('-id')[0]
                 reglevel = RegistrationLevel.objects.get(id=form['registration_level'].value)
                 dealer_price = 0
                 dealer_tables = None
