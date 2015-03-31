@@ -81,7 +81,7 @@ class RegistrationAdmin(admin.ModelAdmin):
             for payment in payments:
                 if (payment.payment_method.is_credit and payment.payment_extra):
                     try:
-                        stripe.api_key = Convention.objects.filter(id=payment.payment_method.convention).get().stripe_secret_key
+                        stripe.api_key = Convention.objects.filter(id=payment.registration.registration_level.convention).get().stripe_secret_key
                         charge = stripe.Charge.retrieve(payment.payment_extra)
                         refund = charge.refunds.create()
                         payment.refunded_by = request.user
