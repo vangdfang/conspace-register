@@ -41,7 +41,7 @@ class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
     list_filter = ('registration_level', 'shirt_size', 'checked_in', 'volunteer', 'registration_level__convention')
     search_fields = ['name', 'badge_name', 'email', 'badgeassignment__id']
-    actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge']
+    actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge', 'download_registration_detail']
     action_form = RegistrationAdminForm
     ordering = ('id',)
 
@@ -133,6 +133,53 @@ class RegistrationAdmin(admin.ModelAdmin):
         if len(temp_list) > 0:
             split_badges.append({'list': temp_list, 'last': True})
         return render(request, 'register/badgelist.html', {'lists': split_badges})
+
+    def download_registration_detail(self, request, queryset):
+        registration_list = []
+        for badge in queryset:
+            payments = Payment.objects.filter(registration=badge)
+            for payment in payments:
+                discount_amount = ''
+                try:
+                    coupon = CouponUse.objects.get(registration=badge)
+                    if coupon.coupon.percent:
+                        discount_amount = '%.02f' % ((coupon.coupon.discount / 100) * badge.registration_level.price)
+                    else:
+                        discount_amount = '%.02f' % (coupon.coupon.discount)
+                except ObjectDoesNotExist:
+                    pass
+                registration_list.append({'name': badge.name,
+                                          'badge_name': badge.badge_name.replace('"', '""'),
+                                          'badge_number': badge.badge_number(),
+                                          'registration_level': badge.registration_level.title.replace('"', '""'),
+                                          'payment_amount': '%.02f' % payment.payment_amount,
+                                          'payment_created': payment.payment_received,
+                                          'received_by': payment.created_by.username.replace('"', '""') if payment.created_by else '',
+                                          'refunded_by': payment.refunded_by.username.replace('"', '""') if payment.refunded_by else '',
+                                          'discount_amount': discount_amount,
+                                          'payment_method': payment.payment_method})
+        if not payments:
+            discount_amount = ''
+            try:
+                coupon = CouponUse.objects.get(registration=badge)
+                if coupon.coupon.percent:
+                    discount_amount = '%.02f' % ((coupon.coupon.discount / 100) * badge.registration_level.price)
+                else:
+                    discount_amount = '%.02f' % (coupon.coupon.discount)
+            except ObjectDoesNotExist:
+                pass
+            registration_list.append({'name': badge.name,
+                                      'badge_name': badge.badge_name.replace('"', '""'),
+                                      'badge_number': badge.badge_number(),
+                                      'registration_level': badge.registration_level.title.replace('"', '""'),
+                                      'payment_amount': '0.00',
+                                      'payment_created': '',
+                                      'payment_refunded': '',
+                                      'received_by': '',
+                                      'refunded_by': '',
+                                      'discount_amount': discount_amount,
+                                      'payment_method': ''})
+        return render(request, 'register/regdetail.csv', {'badges': registration_list}, content_type='text/csv')
 
 admin.site.register(Registration, RegistrationAdmin)
 

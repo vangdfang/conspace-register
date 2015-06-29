@@ -112,9 +112,9 @@ class Payment(models.Model):
     payment_method = models.ForeignKey('PaymentMethod')
     payment_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_received = models.DateTimeField(auto_now_add=True)
-    payment_extra = models.CharField(max_length=255, null=True)
+    payment_extra = models.CharField(max_length=255, blank=True, null=True)
     created_by = models.ForeignKey(User, null=True, related_name="created_by_user")
-    refunded_by = models.ForeignKey(User, null=True, related_name="refunded_by_user")
+    refunded_by = models.ForeignKey(User, blank=True, null=True, related_name="refunded_by_user")
 
     def __str__(self):
         return self.registration.name + ' [' + "%.02f" % (self.payment_amount) + ']'
