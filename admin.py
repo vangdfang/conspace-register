@@ -184,9 +184,36 @@ class RegistrationAdmin(admin.ModelAdmin):
 admin.site.register(Registration, RegistrationAdmin)
 
 class PaymentAdmin(admin.ModelAdmin):
+    actions = ['download_payment_detail']
     list_display = ('registration', 'payment_method', 'payment_amount', 'payment_received', 'created_by', 'refunded_by')
     list_filter = ('payment_method',)
     search_fields = ['registration__name', 'registration__badge_name', 'registration__email']
+
+    def download_payment_detail(self, request, queryset):
+        registration_list = []
+        for payment in queryset:
+            badge = payment.registration
+            discount_amount = ''
+            try:
+                coupon = CouponUse.objects.get(registration=badge)
+                if coupon.coupon.percent:
+                    discount_amount = '%.02f' % ((coupon.coupon.discount / 100) * badge.registration_level.price)
+                else:
+                    discount_amount = '%.02f' % (coupon.coupon.discount)
+            except ObjectDoesNotExist:
+                pass
+            registration_list.append({'name': badge.name,
+                                      'badge_name': badge.badge_name.replace('"', '""'),
+                                      'badge_number': badge.badge_number(),
+                                      'registration_level': badge.registration_level.title.replace('"', '""'),
+                                      'payment_amount': '%.02f' % payment.payment_amount,
+                                      'payment_created': payment.payment_received,
+                                      'received_by': payment.created_by.username.replace('"', '""') if payment.created_by else '',
+                                      'refunded_by': payment.refunded_by.username.replace('"', '""') if payment.refunded_by else '',
+                                      'discount_amount': discount_amount,
+                                      'payment_method': payment.payment_method})
+        return render(request, 'register/regdetail.csv', {'badges': registration_list}, content_type='text/csv')
+
 admin.site.register(Payment, PaymentAdmin)
 
 class BadgeAssignmentAdmin(admin.ModelAdmin):
