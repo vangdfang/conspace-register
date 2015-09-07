@@ -153,6 +153,7 @@ class CouponCode(models.Model):
     percent = models.BooleanField(default=False)
     single_use = models.BooleanField(default=False)
     force_registration_level = models.ForeignKey('RegistrationLevel', null=True, blank=True)
+    force_dealer_registration_level = models.ForeignKey('DealerRegistrationLevel', null=True, blank=True)
 
     def __str__(self):
         if self.percent:

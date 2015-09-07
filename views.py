@@ -66,6 +66,9 @@ class Register(View):
                     discount_amount = code.discount
                 if code.force_registration_level:
                     reglevel = code.force_registration_level
+                if code.force_dealer_registration_level:
+                    dealer_reglevel = code.force_dealer_registration_level
+                    dealer_price = dealer_reglevel.price
             amount = max(((reglevel.price + dealer_price - discount_amount) * (1 - discount_percent)), 0)
             if 'stripeToken' in request.POST.keys():
                 # Process Stripe payment
@@ -155,6 +158,10 @@ class Register(View):
                         discount_amount = code.discount
                     if code.force_registration_level:
                         reglevel = code.force_registration_level
+                    if code.force_dealer_registration_level:
+                        dealer_reglevel = code.force_dealer_registration_level
+                        dealer_price = dealer_reglevel.price
+                        dealer_tables = dealer_reglevel.number_tables
 
                 method = PaymentMethod.objects.get(id=form['payment_method'].value)
                 shirt_size = ShirtSize.objects.get(id=form['shirt_size'].value)
