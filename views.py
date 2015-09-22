@@ -83,6 +83,7 @@ class Register(View):
                     reg.ip = request.META['REMOTE_ADDR']
                     reg.user = request.user
                     reg.registration_level = reglevel
+                    reg.dealer_registration_level = dealer_reglevel
                     try:
                         reg.save()
                         method = PaymentMethod.objects.get(id=form['payment_method'].value)
@@ -110,6 +111,7 @@ class Register(View):
                 reg.ip = request.META['REMOTE_ADDR']
                 reg.user = request.user
                 reg.registration_level = reglevel
+                reg.dealer_registration_level = dealer_reglevel
                 try:
                     reg.save()
                     if amount == 0:
