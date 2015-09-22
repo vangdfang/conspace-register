@@ -149,9 +149,15 @@ class RegistrationAdmin(admin.ModelAdmin):
                 except ObjectDoesNotExist:
                     pass
                 registration_list.append({'name': badge.name,
+                                          'address': badge.address,
+                                          'city': badge.city,
+                                          'state': badge.state,
+                                          'postal_code': badge.postal_code,
+                                          'country': badge.country,
                                           'badge_name': badge.badge_name.replace('"', '""'),
                                           'badge_number': badge.badge_number(),
                                           'registration_level': badge.registration_level.title.replace('"', '""'),
+                                          'dealer_registration_level': badge.dealer_registration_level.number_tables if badge.dealer_registration_level else '',
                                           'payment_amount': '%.02f' % payment.payment_amount,
                                           'payment_created': payment.payment_received,
                                           'received_by': payment.created_by.username.replace('"', '""') if payment.created_by else '',
@@ -169,17 +175,24 @@ class RegistrationAdmin(admin.ModelAdmin):
             except ObjectDoesNotExist:
                 pass
             registration_list.append({'name': badge.name,
+                                      'address': badge.address,
+                                      'city': badge.city,
+                                      'state': badge.state,
+                                      'postal_code': badge.postal_code,
+                                      'country': badge.country,
                                       'badge_name': badge.badge_name.replace('"', '""'),
                                       'badge_number': badge.badge_number(),
                                       'registration_level': badge.registration_level.title.replace('"', '""'),
+                                      'dealer_registration_level': badge.dealer_registration_level.number_tables if badge.dealer_registration_level else '',
                                       'payment_amount': '0.00',
                                       'payment_created': '',
-                                      'payment_refunded': '',
                                       'received_by': '',
                                       'refunded_by': '',
                                       'discount_amount': discount_amount,
                                       'payment_method': ''})
-        return render(request, 'register/regdetail.csv', {'badges': registration_list}, content_type='text/csv')
+        response = render(request, 'register/regdetail.csv', {'badges': registration_list}, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="regdetail.csv"'
+        return response
 
 admin.site.register(Registration, RegistrationAdmin)
 
@@ -203,16 +216,24 @@ class PaymentAdmin(admin.ModelAdmin):
             except ObjectDoesNotExist:
                 pass
             registration_list.append({'name': badge.name,
+                                      'address': badge.address,
+                                      'city': badge.city,
+                                      'state': badge.state,
+                                      'postal_code': badge.postal_code,
+                                      'country': badge.country,
                                       'badge_name': badge.badge_name.replace('"', '""'),
                                       'badge_number': badge.badge_number(),
                                       'registration_level': badge.registration_level.title.replace('"', '""'),
+                                      'dealer_registration_level': badge.dealer_registration_level.number_tables if badge.dealer_registration_level else '',
                                       'payment_amount': '%.02f' % payment.payment_amount,
                                       'payment_created': payment.payment_received,
                                       'received_by': payment.created_by.username.replace('"', '""') if payment.created_by else '',
                                       'refunded_by': payment.refunded_by.username.replace('"', '""') if payment.refunded_by else '',
                                       'discount_amount': discount_amount,
                                       'payment_method': payment.payment_method})
-        return render(request, 'register/regdetail.csv', {'badges': registration_list}, content_type='text/csv')
+        response = render(request, 'register/regdetail.csv', {'badges': registration_list}, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="regdetail.csv"'
+        return response
 
 admin.site.register(Payment, PaymentAdmin)
 
