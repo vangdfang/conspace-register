@@ -103,7 +103,7 @@ class Register(View):
                     request.session.pop('form')
                 except stripe.error.CardError as e:
                     # Pass a "Payment Declined" error to the user
-                    form.errors['__all__'] = form.error_class([e])
+                    form.errors['__all__'] = form.error_class([e.json_body['error']['message']])
                     request.session.pop('form')
                     return render(request, 'register/register.html', {'form': form})
             else:
