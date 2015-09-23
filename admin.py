@@ -149,6 +149,7 @@ class RegistrationAdmin(admin.ModelAdmin):
                 except ObjectDoesNotExist:
                     pass
                 registration_list.append({'name': badge.name,
+                                          'email': badge.email,
                                           'address': badge.address,
                                           'city': badge.city,
                                           'state': badge.state,
@@ -175,6 +176,7 @@ class RegistrationAdmin(admin.ModelAdmin):
             except ObjectDoesNotExist:
                 pass
             registration_list.append({'name': badge.name,
+                                      'email': badge.email,
                                       'address': badge.address,
                                       'city': badge.city,
                                       'state': badge.state,
@@ -216,6 +218,7 @@ class PaymentAdmin(admin.ModelAdmin):
             except ObjectDoesNotExist:
                 pass
             registration_list.append({'name': badge.name,
+                                      'email': badge.email,
                                       'address': badge.address,
                                       'city': badge.city,
                                       'state': badge.state,
