@@ -51,6 +51,7 @@ class Register(View):
         if 'confirm' in request.POST.keys():
             form = request.session['form']
             dealer_price = 0
+            dealer_reglevel = None
             if form.cleaned_data['dealer_registration_level']:
                 dealer_reglevel = DealerRegistrationLevel.objects.get(id=form['dealer_registration_level'].value)
                 dealer_price = dealer_reglevel.price
