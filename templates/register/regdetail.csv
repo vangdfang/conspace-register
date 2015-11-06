@@ -1,0 +1,4 @@
+"First Name","Last Name","Email","Address","City","State","Postal Code","Country","Badge Name","Badge Number","Registration Level","Dealer Registration Level","Payment Amount","Payment Created","Received By","Refunded By","Discount Amount","Payment Method"
+{% for badge in badges %}
+"{{badge.first_name}}","{{badge.last_name}}","{{badge.email}}","{{badge.address}}","{{badge.city}}","{{badge.state}}","{{badge.postal_code}}","{{badge.country}}","{{badge.badge_name}}","{{badge.badge_number}}","{{badge.registration_level}}","{{badge.dealer_registration_level}}","{{badge.payment_amount}}","{{badge.payment_created}}","{{badge.received_by}}","{{badge.refunded_by}}","{{badge.discount_amount}}","{{badge.payment_method}}"
+{% endfor %}

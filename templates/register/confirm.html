@@ -1,0 +1,112 @@
+{% extends "blank.html" %}
+
+{% block content %}
+<div class="container container-expand">
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+            <h2 class="page-header">Registration <small>Please verify the following information is correct</small></h2>
+        </div>
+    </div>
+<form class="form-horizontal" action="/register/" method="post" role="form">
+{% csrf_token %}
+    <div class="col-sm-8 col-sm-offset-2">
+        <table class="table table-bordered table-condensed">
+            <colgroup>
+                <col class="col-xs-1">
+                <col class="col-xs-7">
+            </colgroup>
+            <tr class="{% cycle '' 'info' as rowcolors %}">
+                <th>First Name:</th>
+                <td>{{ form.data.first_name }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Last Name:</th>
+                <td>{{ form.data.last_name }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Badge Name:</th>
+                <td>{{ form.data.badge_name }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>E-mail Address:</th>
+                <td>{{ form.data.email }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Home Address:</th>
+                <td>{{ form.data.address }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>City:</th>
+                <td>{{ form.data.city }}</th>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>State/Province:</th>
+                <td>{{ form.data.state }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Postal Code:</th>
+                <td>{{ form.data.postal_code }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Country:</th>
+                <td>{{ form.data.country }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Registration Level:</th>
+                <td>{{ registration_level }}</td>
+            </tr>
+            {% if dealer_number_tables %}
+            <tr class="{% cycle rowcolors %}">
+                <th>Dealer Tables:</th>
+                <td>{{ dealer_number_tables }}</td>
+            </tr>
+            {% endif %}
+            <tr class="{% cycle rowcolors %}">
+                <th>Date of Birth:</th>
+                <td>{{ birthday }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Shirt Size:</th>
+                <td>{{ shirt_size }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Volunteering?</th>
+                <td>{% if form.data.volunteer %}Yes{% else %}No{% endif %}</td>
+            </tr>
+            {% if form.data.volunteer %}
+            <tr class="{% cycle rowcolors %}">
+                <th>Phone Number</th>
+                <td>{{ form.data.volunteer_phone }}</td>
+            </tr>
+            {% endif %}
+            <tr class="{% cycle rowcolors %}">
+                <th>Payment Method:</th>
+                <td>{{ method }}</td>
+            </tr>
+            <tr class="{% cycle rowcolors %}">
+                <th>Total Amount:</th>
+                <td>{{ registration_price|floatformat:2 }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-sm-8 col-sm-offset-2">
+        <center><div class="alert alert-info" role="alert">By submitting this registration form, You agree to our Terms and Conditions.</div>
+        <a class="btn btn-danger" href="javascript:history.back()" role="button">Edit Registration Form</a>
+        {% if is_credit %}
+            <script
+            src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+            data-key="{{ convention.stripe_publishable_key }}"
+            data-name="{{ convention.name }}"
+            data-email="{{ form.data.email }}"
+            data-description="{{ registration_level }}"
+            data-amount="{{ registration_amount }}">
+              </script>
+        {% else %}
+            <button type="submit" name="submit" class="btn btn-info">Submit Registration</button>
+        {% endif %}
+            </center>
+        <input type="hidden" name="confirm" value="1" />
+    </div>
+</form>
+</div>
+{% endblock %}

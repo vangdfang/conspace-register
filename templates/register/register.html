@@ -1,0 +1,165 @@
+{% extends "blank.html" %}
+
+{% block content %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+{% load registration_extras %}
+
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+            <h2 class="page-header">Registration <small>Please fill in the following information</small></h2>
+        </div>
+    </div>
+<form class="form-horizontal" role="form" action="/register/" method="post">
+{% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="form-group">
+      <div class="col-sm-8 col-sm-offset-2">
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% bootstrap_field form.first_name layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% bootstrap_field form.last_name layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    <div class="form-group">
+        <div class="col-sm-2 col-sm-offset-1"></div>
+        <div class="col-sm-6">
+            <div class="alert alert-info" role="alert">
+                <center><strong>Yes, this is your full, legal name, as it appears on your government-issued ID.</strong> If you use something else, we may be unable to determine if you're registered and give you blank stares instead.</center>
+            </div>
+        </div>
+    </div>
+    {% bootstrap_field form.badge_name layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    <div class="form-group">
+        <div class="col-sm-2 col-sm-offset-1"></div>
+        <div class="col-sm-6">
+            <div class="alert alert-info" role="alert"><center><strong>Please use only Alphanumeric characters.</strong> Some special characters may not be printed.</center></div>
+        </div>
+    </div>
+    {% bootstrap_field form.email layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% bootstrap_field form.address layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% bootstrap_field form.city layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% bootstrap_field form.state layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% bootstrap_field form.postal_code layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% bootstrap_field form.country layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    <div class="form-group {% if form.registration_level.errors %}has-error{% elif form.registration_level.value %}has-success{% endif %}">
+        <label for="{{ form.registration_level.id_for_label }}" class="col-sm-2 col-sm-offset-1 control-label">{{ form.registration_level.label }}</label>
+        <div class="col-sm-6 btn-group" data-toggle="buttons">
+            {% for option in form.registration_level %}
+                {% if option.choice_value == form.registration_level.value and not option|disabled_reglevel %}
+                    <label class="btn btn-primary active">
+                        <input type="radio" name="{{ option.name }}" id="{{ option.id_for_label }}" value="{{ option.choice_value }}" checked class="form-control">{{ option.choice_label }}
+                    </label>
+                {% else %}
+                    <label class="btn btn-primary {{ option|disabled_reglevel }}">
+                        <input type="radio" name="{{ option.name }}" id="{{ option.id_for_label }}" value="{{ option.choice_value }}"{{ option|disabled_reglevel }} class="form-control">{{ option.choice_label }}
+                    </label>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if form.registration_level.errors %}
+            <span class="help-block col-sm-6 col-sm-offset-3">
+            {% for error in form.registration_level.errors %}
+                {{ error }}
+            {% endfor %}
+            </span>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <div class="col-sm-2 col-sm-offset-1"></div>
+        <div class="col-sm-6">
+            <div class="alert alert-info" role="alert"><center><strong>For more information on each Registration level,</strong> <a href="/reginfo/" target="_blank">click here</a>.</center></div>
+        </div>
+    </div>
+    <div class="form-group {% if form.dealer_registration_level.errors %}has-error{% elif form.dealer_registration_level.value %}has-success{% endif %}">
+        <label for="{{ form.dealer_registration_level.id_for_label }}" class="col-sm-2 col-sm-offset-1 control-label">{{ form.dealer_registration_level.label }}</label>
+        <div class="col-sm-6 btn-group" data-toggle="buttons">
+            {% for option in form.dealer_registration_level %}
+                {% if option.choice_value == form.dealer_registration_level.value and not option|disabled_dealerreglevel %}
+                    <label class="btn btn-primary active">
+                        <input type="radio" name="{{ option.name }}" id="{{ option.id_for_label }}" value="{{ option.choice_value }}" checked class="form-control">{{ option.choice_label }}
+                    </label>
+                {% else %}
+                    <label class="btn btn-primary {{ option|disabled_dealerreglevel }}">
+                        <input type="radio" name="{{ option.name }}" id="{{ option.id_for_label }}" value="{{ option.choice_value }}"{{ option|disabled_dealerreglevel }} class="form-control">{{ option.choice_label }}
+                    </label>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if form.dealer_registration_level.errors %}
+            <span class="help-block col-sm-6 col-sm-offset-3">
+            {% for error in form.dealer_registration_level.errors %}
+                {{ error }}
+            {% endfor %}
+            </span>
+        {% endif %}
+    </div>
+    {% bootstrap_field form.birthday layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    <div class="form-group {% if form.payment_method.errors %}has-error{% elif form.payment_method.value %}has-success{% endif %}">
+        <label for="{{ form.payment_method.id_for_label }}" class="col-sm-2 col-sm-offset-1 control-label">{{ form.payment_method.label }}</label>
+        <div class="col-sm-6 btn-group" data-toggle="buttons">
+            {% for option in form.payment_method %}
+                {% if option.choice_value == form.payment_method.value %}
+                    <label class="btn btn-primary active">
+                        <input type="radio" name="{{ option.name }}" id="{{ option.id_for_label }}" checked value="{{ option.choice_value }}" class="form-control">{{ option.choice_label }}
+                    </label>
+                {% else %}
+                    <label class="btn btn-primary">
+                        <input type="radio" name="{{ option.name }}" id="{{ option.id_for_label }}" value="{{ option.choice_value }}" class="form-control">{{ option.choice_label }}
+                    </label>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if form.payment_method.errors %}
+            <span class="help-block col-sm-6 col-sm-offset-3">
+            {% for error in form.payment_method.errors %}
+                {{ error }}
+            {% endfor %}
+            </span>
+        {% endif %}
+    </div>
+    <div class="form-group {% if form.shirt_size.errors %}has-error{% elif form.shirt_size.value %}has-success{% endif %}">
+        <label for="{{ form.shirt_size.id_for_label }}" class="col-sm-2 col-sm-offset-1 control-label">{{ form.shirt_size.label }}</label>
+        <div class="col-sm-6 btn-group" data-toggle="buttons">
+            {% for option in form.shirt_size %}
+                {% if option.choice_value == form.shirt_size.value %}
+                    <label class="btn btn-primary active">
+                        <input type="radio" name="{{ option.name }}" id="{{ option.id_for_label }}" checked value="{{ option.choice_value }}" class="form-control">{{ option.choice_label }}
+                    </label>
+                {% else %}
+                    <label class="btn btn-primary">
+                        <input type="radio" name="{{ option.name }}" id="{{ option.id_for_label }}" value="{{ option.choice_value }}" class="form-control">{{ option.choice_label }}
+                    </label>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if form.shirt_size.errors %}
+            <span class="help-block col-sm-6 col-sm-offset-3">
+            {% for error in form.shirt_size.errors %}
+                {{ error }}
+            {% endfor %}
+            </span>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <div class="col-sm-2 col-sm-offset-1"></div>
+        <div class="col-sm-6">
+            <div class="alert alert-info" role="alert">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> T-Shirts are given as a "Thank You" gift to Sponsor Level Registrants and above, but we're asking all registrants their shirt size so we can estimate how many of each shirt size to have on hand.
+            </div>
+        </div>
+    </div>
+    {% bootstrap_field form.volunteer layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% bootstrap_field form.volunteer_phone layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% bootstrap_field form.coupon_code layout='horizontal' horizontal_label_class='col-sm-2 col-sm-offset-1' horizontal_field_class='col-sm-6' %}
+    {% buttons %}
+      <center>
+        <button type="submit" class="btn btn-primary">
+          Continue
+        </button>
+      </center>
+    {% endbuttons %}
+</form>
+{% endblock %}

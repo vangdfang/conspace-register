@@ -31,7 +31,8 @@ from django.core.exceptions import ObjectDoesNotExist
 @python_2_unicode_compatible
 class Registration(models.Model):
     user = models.ForeignKey(User)
-    name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
     badge_name = models.CharField(max_length=32)
     email = models.EmailField()
     address = models.CharField(max_length=255)
@@ -87,7 +88,7 @@ class Registration(models.Model):
         return None
 
     def __str__(self):
-        return self.name + ' [' + self.badge_name + ']'
+        return self.first_name + ' ' + self.last_name + ' [' + self.badge_name + ']'
 
 @python_2_unicode_compatible
 class BadgeAssignment(models.Model):

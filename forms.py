@@ -62,7 +62,8 @@ class RegistrationForm(forms.ModelForm):
     class Meta:
         model = Registration
         fields = [
-                  'name',
+                  'first_name',
+                  'last_name',
                   'badge_name',
                   'email',
                   'address',

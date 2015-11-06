@@ -21,7 +21,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Create your views here.
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import View

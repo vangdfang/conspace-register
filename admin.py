@@ -38,9 +38,9 @@ class RegistrationAdminForm(ActionForm):
     reprint = forms.BooleanField(required=False)
 
 class RegistrationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
+    list_display = ('first_name', 'last_name', 'badge_name', 'registration_level', 'shirt_size', 'checked_in', 'paid', 'badge_number')
     list_filter = ('registration_level', 'shirt_size', 'checked_in', 'volunteer', 'registration_level__convention', 'payment__payment_received')
-    search_fields = ['name', 'badge_name', 'email', 'badgeassignment__id']
+    search_fields = ['first_name', 'last_name', 'badge_name', 'email', 'badgeassignment__id']
     actions = ['mark_checked_in', 'apply_payment', 'refund_payment', 'print_badge', 'download_registration_detail']
     action_form = RegistrationAdminForm
     ordering = ('id',)
@@ -59,7 +59,7 @@ class RegistrationAdmin(admin.ModelAdmin):
     mark_checked_in.short_description = 'Check in attendee'
 
     def apply_payment(self, request, queryset):
-        try: 
+        try:
             amount = request.POST['amount']
             method = PaymentMethod.objects.get(id=request.POST['method'])
         except ObjectDoesNotExist:
@@ -121,12 +121,12 @@ class RegistrationAdmin(admin.ModelAdmin):
             transaction.set_autocommit(ac)
 
     def print_badge_list(self, request):
-        badges = Registration.objects.filter(checked_in=False).order_by('name')
+        badges = Registration.objects.filter(checked_in=False).order_by('last_name')
         split_badges = []
         temp_list = []
         for badge in badges:
             if badge.badge_number():
-                temp_list.append({'name': badge.name, 'badge_name': badge.badge_name, 'badge_number': badge.badge_number(), 'registration_level': badge.registration_level.title})
+                temp_list.append({'first_name': badge.first_name, 'last_name': badge.last_name, 'badge_name': badge.badge_name, 'badge_number': badge.badge_number(), 'registration_level': badge.registration_level.title})
             if len(temp_list) == 25:
                 split_badges.append({'list': temp_list, 'last': False})
                 temp_list = []
@@ -148,7 +148,8 @@ class RegistrationAdmin(admin.ModelAdmin):
                         discount_amount = '%.02f' % (coupon.coupon.discount)
                 except ObjectDoesNotExist:
                     pass
-                registration_list.append({'name': badge.name,
+                registration_list.append({'first_name': badge.first_name,
+                                          'last_name': badge.last_name,
                                           'email': badge.email,
                                           'address': badge.address,
                                           'city': badge.city,
@@ -175,7 +176,8 @@ class RegistrationAdmin(admin.ModelAdmin):
                     discount_amount = '%.02f' % (coupon.coupon.discount)
             except ObjectDoesNotExist:
                 pass
-            registration_list.append({'name': badge.name,
+            registration_list.append({'first_name': badge.first_name,
+                                      'last_name': badge.last_email,
                                       'email': badge.email,
                                       'address': badge.address,
                                       'city': badge.city,
@@ -202,7 +204,7 @@ class PaymentAdmin(admin.ModelAdmin):
     actions = ['download_payment_detail']
     list_display = ('registration', 'payment_method', 'payment_amount', 'payment_received', 'created_by', 'refunded_by')
     list_filter = ('payment_method',)
-    search_fields = ['registration__name', 'registration__badge_name', 'registration__email']
+    search_fields = ['registration__first_name', 'registration__last_name', 'registration__badge_name', 'registration__email']
 
     def download_payment_detail(self, request, queryset):
         registration_list = []
@@ -217,8 +219,8 @@ class PaymentAdmin(admin.ModelAdmin):
                     discount_amount = '%.02f' % (coupon.coupon.discount)
             except ObjectDoesNotExist:
                 pass
-            registration_list.append({'name': badge.name,
-                                      'email': badge.email,
+            registration_list.append({'first_name': badge.first_name,
+                                      'last_name': badge.last_name,
                                       'address': badge.address,
                                       'city': badge.city,
                                       'state': badge.state,
@@ -241,7 +243,7 @@ class PaymentAdmin(admin.ModelAdmin):
 admin.site.register(Payment, PaymentAdmin)
 
 class BadgeAssignmentAdmin(admin.ModelAdmin):
-    search_fields = ['id', 'registration__name', 'registration__badge_name', 'registration__email']
+    search_fields = ['id', 'registration__first_name', 'registration__last_name', 'registration__badge_name', 'registration__email']
 
 admin.site.register(BadgeAssignment, BadgeAssignmentAdmin)
 admin.site.register(RegistrationLevel)

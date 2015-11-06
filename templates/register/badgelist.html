@@ -1,0 +1,66 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-us" xml:lang="en-us">
+    <head>
+        <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Conspace - Badge List</title>
+    </head>
+    <body>
+    <style type="text/css">
+        table {
+          width: 7.5in;
+          margin: 0;
+          border-top: 1px solid #e4e2e8;
+          border-collapse: collapse;
+        }
+        @media print {
+          table.normal {page-break-after: always;}
+          * {-webkit-print-color-adjust: exact;}
+        }
+        th {
+          text-align: left;
+          color: black;
+          background-color: #f8f8f8;
+          background-color: rgba(195, 195, 197, 0.1);
+          font-size: px;
+        }
+        th, td {
+          border-color: silver;
+          border-width: 0 1px 1px 1px;
+          border-style: solid;
+        }
+        td { font-size: 20px; }
+        tr.info {
+          background-color: #ccc;
+        }
+    </style>
+    {% for list in lists %}
+    <table class='{% if not list.last %}normal{% endif %}'>
+        <thead>
+            <tr>
+                <th colspan="5">Conspace - Badge List</th>
+            </tr>
+            <tr class="{% cycle '' 'info' as rowcolors %}">
+                <th style="width: 14%;">Checked In</th>
+                <th style="width: 33%;">Real Name</th>
+                <th style="width: 33%;">Badge Name</th>
+                <th style="width: 5%;">Badge Number</th>
+                <th style="width: 15%;">Registration Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for badge in list.list %}
+                <tr class="{% cycle rowcolors %}">
+                    <td></td>
+                    <td>{{badge.first_name}}</td>
+                    <td>{{badge.last_name}}</td>
+                    <td>{{badge.badge_name}}</td>
+                    <td>{{badge.badge_number}}</td>
+                    <td>{{badge.registration_level}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    </body>
+</html>
